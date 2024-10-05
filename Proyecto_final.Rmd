@@ -1,0 +1,210 @@
+---
+title: "Proyecto"
+output: html_document
+date: "2024-09-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rio)
+data=import("602-Modulo1287.sav")
+```
+
+
+```{r}
+str(data$p128)
+```
+
+```{r}
+str(data$p301)
+`````````
+
+
+```{r}
+str(data$p116)
+
+```
+```{r}
+str(data$p101)
+
+```
+```{r}
+str(data$p113)
+```
+```{r}
+str(data$p114)
+```
+
+
+```{r}
+str(data$p201)
+```
+```{r}
+str(data$p501)
+```
+```{r}
+str(data$p504)
+```
+```{r}
+str(data$p203_11)
+```
+```{r}
+library(dplyr)
+
+# Unir las columnas usando bind_cols() que maneja diferentes longitudes
+combined_data <- bind_cols(
+  p128 = data$p128,
+  p301 = data$p301,
+  p116 = data$p116,
+  p101 = data$p101,
+  p113 = data$p113,
+  p114 = data$p114,
+  p201 = data$p201,
+  p501 = data$p501,
+  p504 = data$p504
+)
+
+# Mostrar la estructura del DataFrame unido
+str(combined_data)
+
+```
+```{r}
+# Eliminar filas con NA
+data_clean <- na.omit(combined_data)
+
+# Ver la estructura del DataFrame sin NA
+str(data_clean)
+```
+```{r}
+# Eliminar solo las filas que tienen todos los valores como NA
+data_clean <- combined_data[complete.cases(combined_data), ]
+
+# Ver la estructura del DataFrame sin filas completamente vacías
+str(data_clean)
+```
+
+
+
+```{r}
+library(dplyr)
+
+# Convertir las variables numéricas discretas a factores
+data_factorized <- data_clean %>%
+  mutate(across(c(p128, p301, p116, p101, p113, p114, p201, p501, p504), as.factor))
+
+# Ver la estructura después de factorizarlas
+str(data_factorized)
+
+```
+```{r}
+data_clean = data_clean %>%
+  mutate(conocimiento_insititucion_derechosLBTIQ = factor(p301, labels = c("Sí", "No")))
+
+```
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    p116 = na_if(p116, 9),  # Reemplazar el valor 9 con NA
+    expresion_sin_temor_deOs_IG = factor(p116, labels = c("Sí", "No"))  )
+
+```
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    p113 = case_when(
+      p113 == 1 ~ "Homosexual",
+      p113 == 2 ~ "Bisexual",
+      p113 == 3 ~ "Pansexual",
+      p113 == 4 ~ "Asexual",
+      p113 %in% c(5, 6, 7, 8) ~ "Otros"  # Agrupar 5, 6, 7 y 8 en "Otros"
+    ),
+    orientacionsexual = factor(p113)
+  )
+
+
+```
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    p114 = case_when(
+      p114 == 1 ~ "Trans",
+      p114 == 2 ~ "Transexual",
+      p114 == 3 ~ "Trans femenina",
+      p114 == 4 ~ "Trans masculino",
+      p114 == 9 ~ "Personas del género no binario",
+      p114 %in% c(6, 7, 8) ~ "Otros"  # Agrupar 6, 7 y 8 en "Otros"
+    ),
+    identidadgénero = factor(p114)
+  )
+
+```
+
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    p201 = na_if(p201, 9),  # Reemplazar el valor 9 con NA
+    sufrió_discrminación_violencia = factor(p201, labels = c("Sí", "No"))  )
+```
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    sociedadperuana_respetuosa = factor(p501, labels = c("Sí", "No","No sabe"))  )
+```
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    reconocimiento_derechosLGBTI = factor(p504, labels = c("Muy Malo", "Malo","Regular","Bueno"))  )
+```
+
+```{r}
+library(dplyr)
+names(data_clean)         
+
+```
+```{r}
+columns_to_remove <- c("p301", "p116", "p113", "p114", "p201", "p501", "p504")
+data_clean <- data_clean %>%
+  select(-one_of(columns_to_remove))  # Solo elimina columnas que existen
+
+```
+
+```{r}
+data_clean = data_clean %>%
+  mutate(
+    p101 = na_if(p101, 99),  # Reemplazar 99 con NA en p101
+    nivel_estudios = factor(p101, 
+                    levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), 
+                    labels = c("Sin nivel educativo", "Educación inicial", "Primaria Incompleta", "Primaria Completa", 
+                               "Secundaria Incompleta", "Secundaria Completa", "Superior No Universitario Incompleta", 
+                               "Superior No Universitario Completa", "Superior Universitario Completa", "Superior Universitario Incompleta", "Postgrado"))
+  )
+
+# Ver la tabla de frecuencias después de la mutación
+table(data_clean$nivel_estudios)
+```
+
+```{r}
+library(dplyr)
+columns_to_remove <- c("p101")
+data_clean <- data_clean %>%
+  select(-all_of(columns_to_remove))
+```
+
+
+```{r}
+library(writexl)
+
+# Exportar data_clean a un archivo Excel llamado "data_clean.xlsx"
+write_xlsx(data_clean, "data_clean.xlsx")
+```
+
+
